@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Express.js — إطار Node.js الأسرع</title>
+
+  <!-- Bootstrap 5 RTL -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" />
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --bg-base:    #0D1117;
+      --bg-card:    #161B22;
+      --bg-elevated:#1C2333;
+      --border:     #30363D;
+      --green:      #3FB950;
+      --green-glow: #3FB95030;
+      --green-dim:  #238636;
+      --blue:       #58A6FF;
+      --purple:     #BC8CFF;
+      --yellow:     #E3B341;
+      --red:        #F85149;
+      --txt-primary:#E6EDF3;
+      --txt-muted:  #8B949E;
+      --txt-faint:  #484F58;
+      --radius:     10px;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+    }
+
+    /* ── RESET ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-base);
+      color: var(--txt-primary);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    ::selection { background: var(--green-glow); color: var(--green); }
+
+    /* ── SCROLLBAR ────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── NAVBAR ───────────────────────────────────────────── */
+    .navbar-brand { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; }
+    .navbar-brand span { color: var(--green); }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+      display: inline-block; margin-left: 6px; animation: pulse 2s infinite; }
+
+    .nav-link-custom {
+      color: var(--txt-muted) !important;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: color .2s;
+      padding: .4rem .8rem !important;
+    }
+    .nav-link-custom:hover { color: var(--txt-primary) !important; }
+
+    .navbar-custom {
+      background: rgba(13,17,23,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: .85rem 0;
+    }
+    .btn-nav {
+      background: var(--green);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: .4rem 1rem;
+      font-size: .85rem;
+      font-weight: 700;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn-nav:hover { opacity: .85; transform: translateY(-1px); color: #000; }
+
+    /* ── NOISE OVERLAY ────────────────────────────────────── */
+    .noise-overlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      opacity: .025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── HERO ─────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 6rem 0 4rem;
+    }
+    .hero-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: .18;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+    }
+    .hero-glow {
+      position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 700px; pointer-events: none;
+      background: radial-gradient(circle, #3FB95015 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      border-radius: 100px;
+      padding: .3rem .9rem;
+      font-size: .78rem;
+      font-family: var(--mono);
+      color: var(--green);
+      letter-spacing: .04em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-eyebrow span { width: 6px; height: 6px; background: var(--green); border-radius: 50%;
+      animation: pulse 2s infinite; display: block; }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .accent { color: var(--green); }
+    .hero-title .dim { color: var(--txt-muted); }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--txt-muted);
+      max-width: 520px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+    }
+
+    .btn-hero-primary {
+      background: var(--green);
+      color: #000;
+      font-weight: 700;
+      font-size: .95rem;
+      padding: .75rem 2rem;
+      border-radius: 8px;
+      border: none;
+      transition: all .2s;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: .5rem;
+    }
+    .btn-hero-primary:hover { background: #4CC962; transform: translateY(-2px); box-shadow: 0 8px 24px #3FB95030; color:#000; }
+
+    .btn-hero-ghost {
+      background: transparent;
+      color: var(--txt-primary);
+      font-weight: 600;
+      font-size: .95rem;
+      padding: .75rem 1.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all .2s;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: .5rem;
+    }
+    .btn-hero-ghost:hover { border-color: var(--txt-muted); background: var(--bg-card); color: var(--txt-primary); }
+
+    /* ── TERMINAL ─────────────────────────────────────────── */
+    .terminal {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6), 0 0 0 1px rgba(63,185,80,.08);
+      font-family: var(--mono);
+    }
+    .terminal-bar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: .75rem 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .t-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .t-red { background: #FF5F57; }
+    .t-yellow { background: #FFBD2E; }
+    .t-green { background: #28C840; }
+    .terminal-title {
+      margin: 0 auto;
+      font-size: .78rem;
+      color: var(--txt-faint);
+    }
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-size: .88rem;
+      line-height: 1.9;
+      min-height: 280px;
+    }
+    .t-prompt { color: var(--green); }
+    .t-cmd { color: var(--txt-primary); }
+    .t-comment { color: var(--txt-faint); }
+    .t-output { color: var(--txt-muted); }
+    .t-success { color: var(--green); }
+    .t-url { color: var(--blue); text-decoration: underline; }
+    .t-cursor {
+      display: inline-block; width: 9px; height: 1.1em;
+      background: var(--green);
+      animation: blink .8s step-end infinite;
+      vertical-align: text-bottom;
+      border-radius: 1px;
+    }
+
+    /* ── STATS BAR ────────────────────────────────────────── */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 0;
+      background: var(--bg-card);
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green);
+      line-height: 1;
+    }
+    .stat-label { font-size: .8rem; color: var(--txt-muted); margin-top: .3rem; }
+
+    /* ── SECTION COMMON ───────────────────────────────────── */
+    section { position: relative; }
+    .section-label {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--green);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .5rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      color: var(--txt-muted);
+      font-size: 1.05rem;
+      max-width: 560px;
+    }
+    .divider { border-color: var(--border) !important; }
+
+    /* ── FEATURE CARDS ────────────────────────────────────── */
+    .feat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      height: 100%;
+      transition: border-color .25s, transform .25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-card::before {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 80px; height: 80px;
+      background: var(--green-glow);
+      border-radius: 0 var(--radius) 0 100%;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .feat-card:hover { border-color: #3FB95050; transform: translateY(-3px); }
+    .feat-card:hover::before { opacity: 1; }
+
+    .feat-icon {
+      width: 44px; height: 44px;
+      border-radius: 8px;
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 1.1rem;
+    }
+    .feat-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: .5rem;
+    }
+    .feat-desc { font-size: .9rem; color: var(--txt-muted); line-height: 1.7; }
+
+    /* ── CODE TABS ────────────────────────────────────────── */
+    .code-section { padding: 5rem 0; }
+    .code-tabs {
+      display: flex; gap: .25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .code-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--txt-muted);
+      font-family: var(--mono);
+      font-size: .82rem;
+      padding: .6rem 1.2rem;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab-btn:hover:not(.active) { color: var(--txt-primary); }
+
+    .code-box {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+    }
+    .code-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: .6rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .file-badge {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--txt-muted);
+    }
+    .copy-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--txt-muted);
+      border-radius: 5px;
+      font-size: .75rem;
+      padding: .25rem .7rem;
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .copy-btn:hover { border-color: var(--green); color: var(--green); }
+
+    .code-pane { display: none; }
+    .code-pane.active { display: block; }
+    .code-box pre { margin: 0; padding: 1.5rem; overflow-x: auto; font-size: .85rem; }
+    .code-box code { font-family: var(--mono) !important; line-height: 1.8 !important; }
+
+    /* ── MIDDLEWARE PIPELINE ──────────────────────────────── */
+    .middleware-section { padding: 5rem 0; background: var(--bg-card); }
+    .pipeline {
+      display: flex; flex-direction: column; gap: 0;
+      max-width: 640px; margin: 0 auto;
+    }
+    .pipe-item {
+      display: flex; align-items: flex-start; gap: 1.25rem;
+      padding: 1.5rem;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color .2s;
+      position: relative;
+    }
+    .pipe-item:hover { border-color: var(--green-dim); }
+    .pipe-connector {
+      width: 2px; height: 28px;
+      background: linear-gradient(var(--green-dim), var(--border));
+      margin: 0 auto;
+      position: relative;
+      display: flex; justify-content: center;
+    }
+    .pipe-connector::after {
+      content: '▼';
+      position: absolute; bottom: -2px;
+      font-size: .5rem;
+      color: var(--green-dim);
+    }
+    .pipe-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+    .pipe-title { font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
+    .pipe-desc { font-size: .85rem; color: var(--txt-muted); }
+    .pipe-code {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--blue);
+      margin-top: .4rem;
+      background: var(--bg-elevated);
+      padding: .2rem .6rem;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* ── ROUTING ──────────────────────────────────────────── */
+    .routing-section { padding: 5rem 0; }
+    .method-badge {
+      font-family: var(--mono);
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .25rem .7rem;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    .m-get { background: #1f4020; color: #3FB950; }
+    .m-post { background: #1f2d40; color: #58A6FF; }
+    .m-put { background: #302010; color: #E3B341; }
+    .m-delete { background: #3a1010; color: #F85149; }
+
+    .route-row {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      padding: .9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      transition: background .2s;
+    }
+    .route-row:hover { background: var(--bg-elevated); }
+    .route-row:last-child { border-bottom: none; }
+    .route-path { font-family: var(--mono); font-size: .88rem; }
+    .route-desc { font-size: .85rem; color: var(--txt-muted); text-align: left; }
+
+    /* ── COMPARISON TABLE ─────────────────────────────────── */
+    .compare-section { padding: 5rem 0; background: var(--bg-card); }
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .compare-table th {
+      background: var(--bg-elevated);
+      padding: 1rem 1.5rem;
+      font-size: .88rem;
+      font-weight: 700;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      color: var(--txt-muted);
+    }
+    .compare-table th.highlight-col {
+      color: var(--green);
+      background: #0d2a12;
+      border-top: 2px solid var(--green);
+    }
+    .compare-table td {
+      padding: .9rem 1.5rem;
+      font-size: .88rem;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td.feature { text-align: right; color: var(--txt-muted); font-size: .85rem; }
+    .compare-table td.highlight-col { background: #0d2a1208; }
+    .check { color: var(--green); font-size: 1.1rem; }
+    .cross { color: var(--txt-faint); font-size: 1.1rem; }
+    .partial { color: var(--yellow); font-size: 1.1rem; }
+
+    /* ── INSTALL SECTION ──────────────────────────────────── */
+    .install-section { padding: 5rem 0; }
+    .install-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+    }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--green);
+      color: #000;
+      font-size: .8rem;
+      font-weight: 800;
+      font-family: var(--mono);
+      flex-shrink: 0;
+      margin-top: .15rem;
+    }
+    .step-title { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
+    .step-desc { font-size: .85rem; color: var(--txt-muted); }
+    .inline-code {
+      font-family: var(--mono);
+      font-size: .82rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: .15rem .5rem;
+      border-radius: 4px;
+      color: var(--green);
+    }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+    footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 3rem 0 1.5rem;
+    }
+    .footer-brand { font-family: var(--mono); font-weight: 700; font-size: 1.2rem; }
+    .footer-brand span { color: var(--green); }
+    .footer-desc { font-size: .9rem; color: var(--txt-muted); margin-top: .5rem; max-width: 280px; }
+    .footer-heading { font-size: .82rem; font-weight: 700; color: var(--txt-primary); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 1rem; }
+    .footer-link { display: block; color: var(--txt-muted); font-size: .88rem; text-decoration: none; padding: .2rem 0; transition: color .2s; }
+    .footer-link:hover { color: var(--green); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 2.5rem; }
+    .footer-copy { font-size: .82rem; color: var(--txt-faint); }
+
+    /* ── ANIMATIONS ───────────────────────────────────────── */
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp .6s ease both; }
+    .delay-1 { animation-delay: .1s; }
+    .delay-2 { animation-delay: .2s; }
+    .delay-3 { animation-delay: .3s; }
+    .delay-4 { animation-delay: .4s; }
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 991px) {
+      .hero { padding-top: 6rem; }
+      .route-row { grid-template-columns: 70px 1fr; }
+      .route-row .route-desc { grid-column: 2; }
+    }
+    @media (max-width: 575px) {
+      .hero-title { font-size: 2.4rem; }
+      .code-box pre { font-size: .78rem; padding: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="noise-overlay"></div>
+
+<!-- ══ NAVBAR ═══════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <span class="nav-dot"></span><span style="color:var(--txt-primary)">express</span><span>.</span><span style="color:var(--txt-muted)">js</span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+      style="color:var(--txt-muted);">
+      <span class="navbar-toggler-icon" style="filter:invert(1) brightness(.7)"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+        <li class="nav-item"><a class="nav-link-custom nav-link" href="#features">المميزات</a></li>
+        <li class="nav-item"><a class="nav-link-custom nav-link" href="#code">الأمثلة</a></li>
+        <li class="nav-item"><a class="nav-link-custom nav-link" href="#middleware">Middleware</a></li>
+        <li class="nav-item"><a class="nav-link-custom nav-link" href="#routing">التوجيه</a></li>
+        <li class="nav-item"><a class="nav-link-custom nav-link" href="#install">التثبيت</a></li>
+      </ul>
+      <a href="https://expressjs.com" target="_blank" class="btn-nav">التوثيق الرسمي ↗</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ══ HERO ═════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="container position-relative" style="z-index:1">
+    <div class="row align-items-center gy-5">
+
+      <!-- Left -->
+      <div class="col-lg-6 fade-up">
+        <div class="hero-eyebrow">
+          <span></span> v5.0 متاح الآن
+        </div>
+        <h1 class="hero-title">
+          ابنِ تطبيقات<br>
+          <span class="accent">Node.js</span><br>
+          <span class="dim">بثقة واحترافية</span>
+        </h1>
+        <p class="hero-sub">
+          Express.js إطار عمل خفيف وسريع لبناء APIs والتطبيقات الويب. يمنحك الحرية الكاملة مع بنية واضحة ومجتمع ضخم.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="#install" class="btn-hero-primary">
+            ابدأ الآن
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m19 12-7 7-7-7M12 5v14"/></svg>
+          </a>
+          <a href="#code" class="btn-hero-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            استعرض الكود
+          </a>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="col-lg-6 fade-up delay-2">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot t-red"></div>
+            <div class="t-dot t-yellow"></div>
+            <div class="t-dot t-green"></div>
+            <span class="terminal-title">bash — ~/my-app</span>
+          </div>
+          <div class="terminal-body" id="terminalBody">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ STATS ════════════════════════════════════════════════ -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="row gy-3">
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num" id="cnt1">0</div>
+          <div class="stat-label">نجمة على GitHub</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num" id="cnt2">0</div>
+          <div class="stat-label">تحميل أسبوعي</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num" id="cnt3">0</div>
+          <div class="stat-label">حزمة npm تعتمد عليه</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num" id="cnt4">0</div>
+          <div class="stat-label">سنة في الإنتاج</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ FEATURES ══════════════════════════════════════════════ -->
+<section class="py-5" id="features" style="padding: 5rem 0 !important;">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="section-label">لماذا Express؟</div>
+      <h2 class="section-title">كل ما تحتاجه، لا أكثر</h2>
+      <p class="section-sub mx-auto">فلسفة Express بسيطة: أعطك الأدوات الأساسية وخلِّ الباقي لك</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4 fade-up delay-1">
+        <div class="feat-card">
+          <div class="feat-icon">⚡</div>
+          <div class="feat-title">أداء عالٍ</div>
+          <div class="feat-desc">بُني على Node.js المبني على V8 Engine. يتعامل مع آلاف الطلبات في الثانية بموارد محدودة.</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up delay-2">
+        <div class="feat-card">
+          <div class="feat-icon">🧩</div>
+          <div class="feat-title">Middleware مرن</div>
+          <div class="feat-desc">نظام Middleware قوي يسمح لك بمعالجة الطلبات بشكل سلس. أضف أو أزل وظائف بسهولة تامة.</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up delay-3">
+        <div class="feat-card">
+          <div class="feat-icon">🗺️</div>
+          <div class="feat-title">نظام توجيه ذكي</div>
+          <div class="feat-desc">توجيه HTTP كامل لجميع الأفعال GET, POST, PUT, DELETE مع دعم Dynamic Parameters والـ Regex.</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up delay-1">
+        <div class="feat-card">
+          <div class="feat-icon">🏗️</div>
+          <div class="feat-title">محركات القوالب</div>
+          <div class="feat-desc">دعم كامل لـ EJS, Pug, Handlebars وغيرها. اعرض HTML ديناميكي من الـ Server مع بيانات حقيقية.</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up delay-2">
+        <div class="feat-card">
+          <div class="feat-icon">📦</div>
+          <div class="feat-title">نظام npm الضخم</div>
+          <div class="feat-desc">مئات الآلاف من الحزم الجاهزة. Authentication, Database, File Upload وأي وظيفة تخطر ببالك.</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up delay-3">
+        <div class="feat-card">
+          <div class="feat-icon">🔒</div>
+          <div class="feat-title">أمان مدمج</div>
+          <div class="feat-desc">مع Helmet.js وcors وexpress-validator ومكتبات إضافية تبني تطبيقات محمية من أشهر الثغرات.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ CODE EXAMPLES ════════════════════════════════════════ -->
+<section class="code-section" id="code" style="background: var(--bg-card);">
+  <div class="container">
+    <div class="row gy-4 align-items-start">
+      <div class="col-lg-5 fade-up">
+        <div class="section-label">الكود</div>
+        <h2 class="section-title">أمثلة حقيقية</h2>
+        <p class="section-sub">من Hello World إلى REST API متكامل. كل مثال يمكنك تشغيله مباشرة.</p>
+
+        <div class="mt-4 d-flex flex-column gap-3">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-base); border:1px solid var(--border)">
+            <div style="color:var(--green); font-size:1.3rem; margin-top:.1rem">01</div>
+            <div>
+              <div style="font-weight:700; font-size:.9rem">Hello World</div>
+              <div style="font-size:.82rem; color:var(--txt-muted)">تطبيق Express بأقل 8 أسطر</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-base); border:1px solid var(--border)">
+            <div style="color:var(--blue); font-size:1.3rem; margin-top:.1rem">02</div>
+            <div>
+              <div style="font-weight:700; font-size:.9rem">REST API</div>
+              <div style="font-size:.82rem; color:var(--txt-muted)">CRUD كامل لإدارة المستخدمين</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-base); border:1px solid var(--border)">
+            <div style="color:var(--purple); font-size:1.3rem; margin-top:.1rem">03</div>
+            <div>
+              <div style="font-weight:700; font-size:.9rem">Auth JWT</div>
+              <div style="font-size:.82rem; color:var(--txt-muted)">نظام تسجيل دخول بـ JSON Web Token</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7 fade-up delay-2">
+        <div class="code-tabs" id="codeTabs">
+          <button class="tab-btn active" data-pane="p1">Hello World</button>
+          <button class="tab-btn" data-pane="p2">REST API</button>
+          <button class="tab-btn" data-pane="p3">Auth JWT</button>
+          <button class="tab-btn" data-pane="p4">Middleware</button>
+        </div>
+        <div class="code-box">
+          <div class="code-header">
+            <span class="file-badge" id="fileLabel">app.js</span>
+            <button class="copy-btn" id="copyBtn">نسخ</button>
+          </div>
+
+          <!-- Pane 1 -->
+          <div class="code-pane active" id="p1">
+<pre><code class="language-javascript">const express = require('express');
+const app = express();
+
+// تعريف Route بسيط
+app.get('/', (req, res) => {
+  res.send('مرحباً بالعالم! 👋');
+});
+
+// الاستماع على Port 3000
+app.listen(3000, () => {
+  console.log('✅ الخادم يعمل على http://localhost:3000');
+});</code></pre>
+          </div>
+
+          <!-- Pane 2 -->
+          <div class="code-pane" id="p2">
+<pre><code class="language-javascript">const express = require('express');
+const router  = express.Router();
+
+let users = [
+  { id: 1, name: 'يوسف', email: 'yousef@example.com' },
+];
+
+// GET  — جلب كل المستخدمين
+router.get('/', (req, res) => {
+  res.json({ success: true, data: users });
+});
+
+// POST — إضافة مستخدم جديد
+router.post('/', (req, res) => {
+  const user = { id: Date.now(), ...req.body };
+  users.push(user);
+  res.status(201).json({ success: true, data: user });
+});
+
+// PUT — تعديل مستخدم
+router.put('/:id', (req, res) => {
+  const idx = users.findIndex(u => u.id == req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'غير موجود' });
+  users[idx] = { ...users[idx], ...req.body };
+  res.json({ success: true, data: users[idx] });
+});
+
+// DELETE — حذف مستخدم
+router.delete('/:id', (req, res) => {
+  users = users.filter(u => u.id != req.params.id);
+  res.json({ success: true, message: 'تم الحذف' });
+});
+
+module.exports = router;</code></pre>
+          </div>
+
+          <!-- Pane 3 -->
+          <div class="code-pane" id="p3">
+<pre><code class="language-javascript">const express = require('express');
+const jwt     = require('jsonwebtoken');
+const bcrypt  = require('bcryptjs');
+const router  = express.Router();
+
+const SECRET = process.env.JWT_SECRET;
+
+// تسجيل مستخدم جديد
+router.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+  const hash = await bcrypt.hash(password, 12);
+  // احفظ في قاعدة البيانات...
+  res.status(201).json({ message: 'تم التسجيل بنجاح' });
+});
+
+// تسجيل الدخول
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  // جلب المستخدم من DB...
+  const match = await bcrypt.compare(password, user.hash);
+  if (!match) return res.status(401).json({ error: 'بيانات خاطئة' });
+
+  const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '7d' });
+  res.json({ token });
+});
+
+// Middleware للتحقق من الـ Token
+const protect = (req, res, next) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer '))
+    return res.status(401).json({ error: 'غير مصرح' });
+  try {
+    req.user = jwt.verify(auth.split(' ')[1], SECRET);
+    next();
+  } catch { res.status(401).json({ error: 'Token غير صالح' }); }
+};
+
+// Route محمي
+router.get('/profile', protect, (req, res) => {
+  res.json({ userId: req.user.id });
+});
+
+module.exports = router;</code></pre>
+          </div>
+
+          <!-- Pane 4 -->
+          <div class="code-pane" id="p4">
+<pre><code class="language-javascript">const express  = require('express');
+const morgan   = require('morgan');
+const helmet   = require('helmet');
+const cors     = require('cors');
+const rateLimit = require('express-rate-limit');
+
+const app = express();
+
+// ── أمان HTTP Headers
+app.use(helmet());
+
+// ── السماح بـ Cross-Origin Requests
+app.use(cors({ origin: 'https://myapp.com' }));
+
+// ── تحديد عدد الطلبات (Rate Limiting)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  max: 100,
+  message: 'طلبات كثيرة جداً، حاول لاحقاً'
+});
+app.use('/api', limiter);
+
+// ── تسجيل الطلبات في التيرمينال
+app.use(morgan('dev'));
+
+// ── قراءة JSON في الـ Body
+app.use(express.json({ limit: '10kb' }));
+
+// ── Middleware مخصص: قياس الوقت
+app.use((req, res, next) => {
+  req.startTime = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - req.startTime;
+    console.log(`[${req.method}] ${req.url} — ${ms}ms`);
+  });
+  next();
+});
+
+// ── معالجة الأخطاء العامة
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'حدث خطأ في الخادم' });
+});
+
+app.listen(3000);</code></pre>
+          </div>
+
+        </div><!-- /code-box -->
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ MIDDLEWARE PIPELINE ════════════════════════════════ -->
+<section class="middleware-section" id="middleware">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="section-label">كيف يعمل</div>
+      <h2 class="section-title">دورة حياة الطلب</h2>
+      <p class="section-sub mx-auto">كل طلب HTTP يمر بسلسلة من Middleware قبل أن تصل الاستجابة للمستخدم</p>
+    </div>
+
+    <div class="pipeline fade-up">
+      <div class="pipe-item">
+        <div class="pipe-num">1</div>
+        <div>
+          <div class="pipe-title">استقبال الطلب</div>
+          <div class="pipe-desc">Express يستقبل الـ HTTP Request ويحوله لكائن req غني بالمعلومات</div>
+          <span class="pipe-code">app.use((req, res, next) => { ... })</span>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+
+      <div class="pipe-item">
+        <div class="pipe-num">2</div>
+        <div>
+          <div class="pipe-title">Middleware الأمان</div>
+          <div class="pipe-desc">helmet, cors, rate-limiter تفحص وتحمي كل طلب قبل المعالجة</div>
+          <span class="pipe-code">app.use(helmet(), cors(), limiter)</span>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+
+      <div class="pipe-item">
+        <div class="pipe-num">3</div>
+        <div>
+          <div class="pipe-title">تحليل الـ Body</div>
+          <div class="pipe-desc">express.json() يحول نص JSON في body الطلب إلى JavaScript object</div>
+          <span class="pipe-code">app.use(express.json())</span>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+
+      <div class="pipe-item">
+        <div class="pipe-num">4</div>
+        <div>
+          <div class="pipe-title">التوثيق والصلاحيات</div>
+          <div class="pipe-desc">التحقق من الـ JWT Token أو Session قبل الوصول للمصادر الحساسة</div>
+          <span class="pipe-code">const protect = (req, res, next) => { ... }</span>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+
+      <div class="pipe-item">
+        <div class="pipe-num">5</div>
+        <div>
+          <div class="pipe-title">Route Handler</div>
+          <div class="pipe-desc">يصل الطلب أخيراً للـ Handler الصحيح الذي يعالج المنطق ويبني الاستجابة</div>
+          <span class="pipe-code">app.get('/users', async (req, res) => { ... })</span>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+
+      <div class="pipe-item" style="border-color: var(--green-dim)">
+        <div class="pipe-num" style="background:var(--green); color:#000">✓</div>
+        <div>
+          <div class="pipe-title" style="color:var(--green)">إرسال الاستجابة</div>
+          <div class="pipe-desc">res.json() أو res.render() أو res.send() يُرسلون البيانات للـ Client</div>
+          <span class="pipe-code">res.status(200).json({ success: true })</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ ROUTING ════════════════════════════════════════════ -->
+<section class="routing-section" id="routing">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="section-label">HTTP Methods</div>
+      <h2 class="section-title">نظام التوجيه</h2>
+      <p class="section-sub mx-auto">Express يدعم كل أفعال HTTP مع تعريف Routes ديناميكية ومنظمة</p>
+    </div>
+
+    <div class="row gy-4 fade-up">
+      <div class="col-lg-7">
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden">
+          <div style="padding:.9rem 1.25rem; border-bottom:1px solid var(--border); background:var(--bg-elevated)">
+            <span style="font-size:.82rem; color:var(--txt-muted); font-family:var(--mono)">routes/users.js</span>
+          </div>
+          <div class="route-row">
+            <span class="method-badge m-get">GET</span>
+            <span class="route-path">/api/users</span>
+            <span class="route-desc">جلب كل المستخدمين</span>
+          </div>
+          <div class="route-row">
+            <span class="method-badge m-get">GET</span>
+            <span class="route-path">/api/users/:id</span>
+            <span class="route-desc">جلب مستخدم بالـ ID</span>
+          </div>
+          <div class="route-row">
+            <span class="method-badge m-post">POST</span>
+            <span class="route-path">/api/users</span>
+            <span class="route-desc">إنشاء مستخدم جديد</span>
+          </div>
+          <div class="route-row">
+            <span class="method-badge m-put">PUT</span>
+            <span class="route-path">/api/users/:id</span>
+            <span class="route-desc">تعديل بيانات مستخدم</span>
+          </div>
+          <div class="route-row">
+            <span class="method-badge m-delete">DELETE</span>
+            <span class="route-path">/api/users/:id</span>
+            <span class="route-desc">حذف مستخدم</span>
+          </div>
+          <div class="route-row">
+            <span class="method-badge m-get">GET</span>
+            <span class="route-path">/api/users/search</span>
+            <span class="route-desc">بحث بـ Query Params</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="d-flex flex-column gap-3 h-100">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem">
+            <div style="font-weight:700; margin-bottom:.8rem; font-size:.95rem">Route Parameters</div>
+            <div style="background:#010409; border-radius:6px; padding:.9rem 1rem; font-family:var(--mono); font-size:.82rem; line-height:1.9">
+              <span style="color:var(--txt-faint)">// URL: /users/42</span><br>
+              <span style="color:var(--green)">req</span><span style="color:var(--txt-muted)">.params.id</span> <span style="color:var(--txt-faint)">// "42"</span><br>
+              <span style="color:var(--green)">req</span><span style="color:var(--txt-muted)">.query.sort</span>  <span style="color:var(--txt-faint)">// ?sort=name</span><br>
+              <span style="color:var(--green)">req</span><span style="color:var(--txt-muted)">.body.email</span>  <span style="color:var(--txt-faint)">// POST body</span>
+            </div>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem">
+            <div style="font-weight:700; margin-bottom:.8rem; font-size:.95rem">Router Grouping</div>
+            <div style="background:#010409; border-radius:6px; padding:.9rem 1rem; font-family:var(--mono); font-size:.82rem; line-height:1.9">
+              <span style="color:var(--blue)">const</span> <span style="color:var(--txt-primary)">r = express.Router()</span><br>
+              <span style="color:var(--txt-primary)">r.use(authMiddleware)</span><br>
+              <span style="color:var(--txt-primary)">r.get('/', getAll)</span><br>
+              <span style="color:var(--blue)">app</span><span style="color:var(--txt-primary)">.use('/api/users', r)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ COMPARISON ════════════════════════════════════════ -->
+<section class="compare-section">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="section-label">المقارنة</div>
+      <h2 class="section-title">Express مقابل المنافسين</h2>
+      <p class="section-sub mx-auto">فهم الفرق يساعدك تختار الأداة الصحيحة للمشروع الصحيح</p>
+    </div>
+
+    <div class="table-responsive fade-up">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="text-align:right; width:200px">الميزة</th>
+            <th class="highlight-col">Express.js</th>
+            <th>Fastify</th>
+            <th>NestJS</th>
+            <th>Koa</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="feature">سهولة التعلم</td>
+            <td class="highlight-col"><span class="check">✓ سهل</span></td>
+            <td><span class="partial">~ متوسط</span></td>
+            <td><span class="cross">✗ صعب</span></td>
+            <td><span class="check">✓ سهل</span></td>
+          </tr>
+          <tr>
+            <td class="feature">الأداء</td>
+            <td class="highlight-col"><span class="check">✓ عالٍ</span></td>
+            <td><span class="check">✓ الأعلى</span></td>
+            <td><span class="partial">~ جيد</span></td>
+            <td><span class="check">✓ عالٍ</span></td>
+          </tr>
+          <tr>
+            <td class="feature">حجم المجتمع</td>
+            <td class="highlight-col"><span class="check">✓ الأكبر</span></td>
+            <td><span class="partial">~ متوسط</span></td>
+            <td><span class="partial">~ متوسط</span></td>
+            <td><span class="cross">✗ صغير</span></td>
+          </tr>
+          <tr>
+            <td class="feature">TypeScript أصلي</td>
+            <td class="highlight-col"><span class="partial">~ بحزمة</span></td>
+            <td><span class="check">✓ مدمج</span></td>
+            <td><span class="check">✓ مدمج</span></td>
+            <td><span class="partial">~ بحزمة</span></td>
+          </tr>
+          <tr>
+            <td class="feature">هيكل المشروع</td>
+            <td class="highlight-col"><span class="check">✓ حر</span></td>
+            <td><span class="check">✓ حر</span></td>
+            <td><span class="partial">~ محدد</span></td>
+            <td><span class="check">✓ حر</span></td>
+          </tr>
+          <tr>
+            <td class="feature">Middleware نظام</td>
+            <td class="highlight-col"><span class="check">✓ قوي</span></td>
+            <td><span class="check">✓ Hooks</span></td>
+            <td><span class="check">✓ Guards</span></td>
+            <td><span class="check">✓ مميز</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ INSTALL ════════════════════════════════════════════ -->
+<section class="install-section" id="install">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="section-label">ابدأ الآن</div>
+      <h2 class="section-title">التثبيت في 3 خطوات</h2>
+    </div>
+
+    <div class="row gy-4 fade-up">
+      <div class="col-lg-7">
+        <div class="install-card">
+          <div class="d-flex flex-column gap-4">
+
+            <div class="d-flex gap-3 align-items-start">
+              <div class="step-num">1</div>
+              <div>
+                <div class="step-title">أنشئ مجلد المشروع</div>
+                <div class="step-desc mb-2">ابدأ بتهيئة مشروع npm جديد</div>
+                <div style="background:#010409; border:1px solid var(--border); border-radius:6px; padding:.9rem 1rem; font-family:var(--mono); font-size:.83rem; line-height:1.9">
+                  <span style="color:var(--green)">$</span> <span style="color:var(--txt-primary)">mkdir my-app && cd my-app</span><br>
+                  <span style="color:var(--green)">$</span> <span style="color:var(--txt-primary)">npm init -y</span>
+                </div>
+              </div>
+            </div>
+            <hr class="divider" />
+
+            <div class="d-flex gap-3 align-items-start">
+              <div class="step-num">2</div>
+              <div>
+                <div class="step-title">ثبّت Express</div>
+                <div class="step-desc mb-2">حزمة واحدة تكفي للبداية</div>
+                <div style="background:#010409; border:1px solid var(--border); border-radius:6px; padding:.9rem 1rem; font-family:var(--mono); font-size:.83rem; line-height:1.9">
+                  <span style="color:var(--green)">$</span> <span style="color:var(--txt-primary)">npm install express</span><br>
+                  <span style="color:var(--txt-faint)"># للأمان والأدوات الإضافية</span><br>
+                  <span style="color:var(--green)">$</span> <span style="color:var(--txt-primary)">npm install helmet cors morgan dotenv</span>
+                </div>
+              </div>
+            </div>
+            <hr class="divider" />
+
+            <div class="d-flex gap-3 align-items-start">
+              <div class="step-num">3</div>
+              <div>
+                <div class="step-title">أنشئ <span class="inline-code">app.js</span> وشغّل</div>
+                <div class="step-desc mb-2">أضف كود Express الأساسي وابدأ الخادم</div>
+                <div style="background:#010409; border:1px solid var(--border); border-radius:6px; padding:.9rem 1rem; font-family:var(--mono); font-size:.83rem; line-height:1.9">
+                  <span style="color:var(--green)">$</span> <span style="color:var(--txt-primary)">node app.js</span><br>
+                  <span style="color:var(--txt-faint)"># أو مع إعادة التشغيل التلقائي:</span><br>
+                  <span style="color:var(--green)">$</span> <span style="color:var(--txt-primary)">npx nodemon app.js</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="d-flex flex-column gap-3 h-100">
+
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.75rem">
+            <div style="font-size:1.5rem; margin-bottom:.75rem">📁</div>
+            <div style="font-weight:700; margin-bottom:.75rem">هيكل المشروع المقترح</div>
+            <div style="font-family:var(--mono); font-size:.82rem; line-height:2; color:var(--txt-muted)">
+              <span style="color:var(--green)">my-app/</span><br>
+              &nbsp;├── <span style="color:var(--blue)">routes/</span><br>
+              &nbsp;│&nbsp;&nbsp; ├── users.js<br>
+              &nbsp;│&nbsp;&nbsp; └── auth.js<br>
+              &nbsp;├── <span style="color:var(--blue)">middleware/</span><br>
+              &nbsp;│&nbsp;&nbsp; └── protect.js<br>
+              &nbsp;├── <span style="color:var(--blue)">models/</span><br>
+              &nbsp;│&nbsp;&nbsp; └── User.js<br>
+              &nbsp;├── <span style="color:var(--blue)">views/</span> <span style="color:var(--txt-faint)">(EJS)</span><br>
+              &nbsp;├── <span style="color:var(--blue)">public/</span> <span style="color:var(--txt-faint)">(static)</span><br>
+              &nbsp;├── .env<br>
+              &nbsp;└── <span style="color:var(--green)">app.js</span>
+            </div>
+          </div>
+
+          <div style="background:var(--bg-card); border:1px solid var(--green-dim); border-radius:var(--radius); padding:1.75rem">
+            <div style="color:var(--green); font-weight:700; margin-bottom:.75rem; font-size:.95rem">
+              💡 نصيحة
+            </div>
+            <div style="font-size:.88rem; color:var(--txt-muted); line-height:1.8">
+              ابدأ بـ <span class="inline-code">nodemon</span> لإعادة التشغيل التلقائي عند حفظ الكود. أضفه لـ <span class="inline-code">package.json</span>:
+            </div>
+            <div style="background:#010409; border-radius:6px; padding:.75rem 1rem; font-family:var(--mono); font-size:.8rem; margin-top:.75rem; line-height:1.8">
+              <span style="color:var(--txt-faint)">"scripts": {</span><br>
+              &nbsp;&nbsp;<span style="color:var(--yellow)">"dev"</span>: <span style="color:var(--green)">"nodemon app.js"</span><br>
+              <span style="color:var(--txt-faint)">}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ FOOTER ════════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-4">
+        <div class="footer-brand"><span>express</span>.js</div>
+        <p class="footer-desc">إطار عمل سريع وغير متقيد وبسيط لـ Node.js. الأساس الذي تبنى عليه معظم تطبيقات الويب في عالم JavaScript.</p>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="footer-heading">التعلم</div>
+        <a href="#" class="footer-link">البداية السريعة</a>
+        <a href="#" class="footer-link">الدروس</a>
+        <a href="#" class="footer-link">الأمثلة</a>
+        <a href="#" class="footer-link">الـ API Reference</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="footer-heading">المجتمع</div>
+        <a href="https://github.com/expressjs/express" target="_blank" class="footer-link">GitHub</a>
+        <a href="https://expressjs.com" target="_blank" class="footer-link">الموقع الرسمي</a>
+        <a href="https://stackoverflow.com/questions/tagged/express" target="_blank" class="footer-link">Stack Overflow</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="footer-heading">الحزم المقترحة</div>
+        <a href="#" class="footer-link">Mongoose</a>
+        <a href="#" class="footer-link">Passport.js</a>
+        <a href="#" class="footer-link">Multer</a>
+        <a href="#" class="footer-link">Socket.io</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="footer-heading">الإضافات</div>
+        <a href="#" class="footer-link">Helmet</a>
+        <a href="#" class="footer-link">Morgan</a>
+        <a href="#" class="footer-link">CORS</a>
+        <a href="#" class="footer-link">Rate Limiter</a>
+      </div>
+    </div>
+    <div class="footer-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <p class="footer-copy mb-0">هذا الموقع للأغراض التعليمية فقط — بُني بـ HTML + CSS + Bootstrap 5</p>
+      <p class="footer-copy mb-0" style="font-family:var(--mono)">express@5.0.0</p>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ══ SCRIPTS ═══════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+hljs.highlightAll();
+
+/* ── Terminal Typewriter ─────────────────────────── */
+const lines = [
+  { text: '$ mkdir my-app && cd my-app',  type: 'cmd',     delay: 0 },
+  { text: '$ npm init -y',                type: 'cmd',     delay: 900 },
+  { text: 'Wrote to package.json',        type: 'output',  delay: 1400 },
+  { text: '$ npm install express',        type: 'cmd',     delay: 2200 },
+  { text: 'added 65 packages in 2.3s',    type: 'output',  delay: 3500 },
+  { text: '$ node app.js',               type: 'cmd',     delay: 4400 },
+  { text: '✅ Server running on http://localhost:3000', type: 'success', delay: 5200 },
+];
+
+const body = document.getElementById('terminalBody');
+let lineIdx = 0;
+let charIdx = 0;
+let cursorEl = null;
+
+function createLine(type) {
+  const el = document.createElement('div');
+  if (type === 'cmd') {
+    el.innerHTML = '<span class="t-prompt">➜ </span>';
+  }
+  body.appendChild(el);
+  return el;
+}
+
+function type(el, text, type, onDone) {
+  if (cursorEl) cursorEl.remove();
+  cursorEl = document.createElement('span');
+  cursorEl.className = 't-cursor';
+  el.appendChild(cursorEl);
+
+  const chars = text.split('');
+  let i = 0;
+  function next() {
+    if (i < chars.length) {
+      cursorEl.before(document.createTextNode(chars[i++]));
+      setTimeout(next, 38 + Math.random() * 30);
+    } else {
+      if (onDone) setTimeout(onDone, 220);
+    }
+  }
+  next();
+}
+
+function renderLine(idx) {
+  if (idx >= lines.length) {
+    if (cursorEl) cursorEl.remove();
+    return;
+  }
+  const l = lines[idx];
+  setTimeout(() => {
+    const el = document.createElement('div');
+    if (l.type === 'cmd') {
+      el.innerHTML = '<span class="t-prompt">➜ </span>';
+      body.appendChild(el);
+      type(el, l.text.replace(/^\$ /, ''), l.type, () => renderLine(idx + 1));
+    } else {
+      const cls = l.type === 'success' ? 't-success' : 't-output';
+      el.className = cls;
+      body.appendChild(el);
+      el.textContent = l.text;
+      renderLine(idx + 1);
+    }
+    body.scrollTop = body.scrollHeight;
+  }, idx === 0 ? 800 : l.delay - lines[idx - 1].delay);
+}
+renderLine(0);
+
+/* ── Counter Animation ───────────────────────────── */
+function animateCount(el, target, suffix = '') {
+  let start = 0;
+  const dur = 1800;
+  const step = target / (dur / 16);
+  const t = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = (start >= 1000 ? (start / 1000).toFixed(1) + 'K' : Math.floor(start)) + suffix;
+    if (start >= target) clearInterval(t);
+  }, 16);
+}
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      animateCount(document.getElementById('cnt1'), 64000, '+');
+      animateCount(document.getElementById('cnt2'), 40000, '+');
+      animateCount(document.getElementById('cnt3'), 14000, '+');
+      animateCount(document.getElementById('cnt4'), 14, '+');
+      obs.disconnect();
+    }
+  });
+}, { threshold: .3 });
+obs.observe(document.querySelector('.stats-bar'));
+
+/* ── Code Tabs ──────────────────────────────────── */
+const fileNames = { p1: 'app.js', p2: 'routes/users.js', p3: 'routes/auth.js', p4: 'app.js' };
+document.getElementById('codeTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pane = btn.dataset.pane;
+  document.getElementById(pane).classList.add('active');
+  document.getElementById('fileLabel').textContent = fileNames[pane] || 'app.js';
+});
+
+/* ── Copy Button ─────────────────────────────────── */
+document.getElementById('copyBtn').addEventListener('click', function() {
+  const active = document.querySelector('.code-pane.active code');
+  navigator.clipboard.writeText(active.textContent).then(() => {
+    this.textContent = '✓ تم النسخ';
+    this.style.color = 'var(--green)';
+    this.style.borderColor = 'var(--green)';
+    setTimeout(() => {
+      this.textContent = 'نسخ';
+      this.style.color = '';
+      this.style.borderColor = '';
+    }, 2000);
+  });
+});
+
+/* ── Scroll Fade ─────────────────────────────────── */
+const fadeEls = document.querySelectorAll('.fade-up');
+const fadeObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.animation = 'fadeUp .6s ease both'; e.target.style.opacity = '1'; }
+  });
+}, { threshold: .1 });
+fadeEls.forEach(el => { el.style.opacity = '0'; fadeObs.observe(el); });
+</script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مرجع Git الشامل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #0f1520;
+    --card: #141c2e;
+    --border: #1e2d45;
+    --accent: #f7931e;
+    --accent2: #e84393;
+    --green: #39d353;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --red: #ff7b72;
+    --yellow: #e3b341;
+    --text: #cdd9e5;
+    --muted: #6e7f96;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Cairo', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(247,147,30,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(247,147,30,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    padding: 60px 0 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 0 30px rgba(247,147,30,0.4);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-top: 10px;
+    font-weight: 300;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Search */
+  .search-wrap {
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .search-wrap::before {
+    content: '🔍';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    pointer-events: none;
+  }
+
+  #search {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 50px 14px 20px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    direction: rtl;
+  }
+
+  #search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(247,147,30,0.15);
+  }
+
+  #search::placeholder { color: var(--muted); }
+
+  /* Category nav */
+  .cat-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    justify-content: center;
+  }
+
+  .cat-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cat-btn:hover, .cat-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(247,147,30,0.08);
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-icon {
+    font-size: 1.5rem;
+    width: 42px; height: 42px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 300;
+    margin-top: 2px;
+  }
+
+  /* Command grid */
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 12px;
+  }
+
+  /* Command card */
+  .cmd-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cmd-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 3px; height: 100%;
+    background: var(--card-accent, var(--accent));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .cmd-card:hover {
+    border-color: var(--card-accent, var(--accent));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .cmd-card:hover::before { opacity: 1; }
+
+  .cmd-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .cmd-code {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--green);
+    background: rgba(57,211,83,0.08);
+    border: 1px solid rgba(57,211,83,0.2);
+    border-radius: 6px;
+    padding: 5px 10px;
+    flex: 1;
+    word-break: break-all;
+    line-height: 1.5;
+    direction: ltr;
+    text-align: left;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .copy-btn.copied {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .cmd-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .cmd-desc {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .cmd-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    border: 1px solid;
+  }
+
+  .tag-important { background: rgba(232,67,147,0.1); border-color: rgba(232,67,147,0.3); color: var(--accent2); }
+  .tag-danger    { background: rgba(255,123,114,0.1); border-color: rgba(255,123,114,0.3); color: var(--red); }
+  .tag-safe      { background: rgba(57,211,83,0.1);  border-color: rgba(57,211,83,0.3);  color: var(--green); }
+  .tag-advanced  { background: rgba(188,140,255,0.1); border-color: rgba(188,140,255,0.3); color: var(--purple); }
+
+  /* No results */
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    display: none;
+  }
+
+  .no-results .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .highlight { background: rgba(247,147,30,0.3); border-radius: 3px; padding: 0 2px; }
+
+  @media (max-width: 600px) {
+    .cmd-grid { grid-template-columns: 1fr; }
+    .stats { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⎇</div>
+      <h1>مرجع Git الشامل</h1>
+    </div>
+    <p class="subtitle">جميع أوامر Git في مكان واحد — مع شرح كامل بالعربية</p>
+    <div class="stats">
+      <div class="stat"><span class="stat-num" id="totalCount">0</span><span>أمر</span></div>
+      <div class="stat"><span class="stat-num">9</span><span>تصنيف</span></div>
+      <div class="stat"><span class="stat-num">⚠️</span><span>مميز بالخطورة</span></div>
+    </div>
+  </header>
+
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="ابحث عن أمر أو وصف...">
+  </div>
+
+  <div class="cat-nav" id="catNav">
+    <button class="cat-btn active" data-cat="all">🌐 الكل</button>
+    <button class="cat-btn" data-cat="setup">⚙️ الإعداد</button>
+    <button class="cat-btn" data-cat="init">🗂️ البداية</button>
+    <button class="cat-btn" data-cat="basic">📝 الأساسية</button>
+    <button class="cat-btn" data-cat="branch">🌿 الفروع</button>
+    <button class="cat-btn" data-cat="remote">🌐 Remote</button>
+    <button class="cat-btn" data-cat="history">📜 التاريخ</button>
+    <button class="cat-btn" data-cat="undo">↩️ التراجع</button>
+    <button class="cat-btn" data-cat="advanced">🔬 متقدم</button>
+    <button class="cat-btn" data-cat="stash">📦 Stash</button>
+  </div>
+
+  <div id="content"></div>
+  <div class="no-results" id="noResults">
+    <span class="emoji">🔍</span>
+    لا توجد نتائج للبحث عن "<span id="searchTerm"></span>"
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    مرجع Git الشامل · أُعدّ بالعربية · جميع الأوامر موثقة رسمياً من <strong>git-scm.com</strong>
+  </div>
+</footer>
+
+<script>
+const data = [
+  // ─── SETUP ───
+  { cat: 'setup', name: 'تهيئة الاسم', code: 'git config --global user.name "اسمك"', desc: 'تعيين اسمك الذي يظهر في كل commit. --global يعني لكل المشاريع على جهازك.', tags: ['important'] },
+  { cat: 'setup', name: 'تهيئة البريد', code: 'git config --global user.email "email@example.com"', desc: 'تعيين بريدك الإلكتروني المرتبط بكل commit.', tags: ['important'] },
+  { cat: 'setup', name: 'تغيير المحرر الافتراضي', code: 'git config --global core.editor "code --wait"', desc: 'تغيير المحرر الافتراضي (مثلاً VS Code). يُستخدم عند كتابة رسائل commit.', tags: [] },
+  { cat: 'setup', name: 'عرض الإعدادات', code: 'git config --list', desc: 'عرض جميع إعدادات Git الحالية (global + local).', tags: ['safe'] },
+  { cat: 'setup', name: 'عرض إعداد معين', code: 'git config user.name', desc: 'عرض قيمة إعداد محدد فقط.', tags: ['safe'] },
+  { cat: 'setup', name: 'إعداد الألوان', code: 'git config --global color.ui auto', desc: 'تفعيل الألوان في مخرجات Git للقراءة الأسهل.', tags: [] },
+  { cat: 'setup', name: 'alias — اختصار أمر', code: 'git config --global alias.st status', desc: 'إنشاء اختصار لأمر. بعدها تكتب git st بدل git status.', tags: ['advanced'] },
+  { cat: 'setup', name: 'إعداد نهاية السطر (Windows)', code: 'git config --global core.autocrlf true', desc: 'يحوّل نهايات الأسطر تلقائياً بين Windows (CRLF) وLinux (LF).', tags: [] },
+  { cat: 'setup', name: 'ملف .gitignore العالمي', code: 'git config --global core.excludesfile ~/.gitignore_global', desc: 'تحديد ملف gitignore ينطبق على كل مشاريعك.', tags: ['advanced'] },
+
+  // ─── INIT ───
+  { cat: 'init', name: 'إنشاء مستودع جديد', code: 'git init', desc: 'تحويل المجلد الحالي إلى مستودع Git. ينشئ مجلد .git مخفياً.', tags: ['important'] },
+  { cat: 'init', name: 'إنشاء مستودع باسم', code: 'git init اسم-المجلد', desc: 'إنشاء مجلد جديد وتهيئته كمستودع Git دفعة واحدة.', tags: [] },
+  { cat: 'init', name: 'نسخ مستودع', code: 'git clone https://github.com/user/repo.git', desc: 'تحميل نسخة كاملة من مستودع بعيد مع كامل تاريخه.', tags: ['important'] },
+  { cat: 'init', name: 'نسخ بمجلد مختلف', code: 'git clone <url> اسم-المجلد', desc: 'نسخ المستودع داخل مجلد باسم تختاره أنت.', tags: [] },
+  { cat: 'init', name: 'نسخ فرع محدد', code: 'git clone -b اسم-الفرع <url>', desc: 'نسخ المستودع مع تحديد الفرع المطلوب مباشرة.', tags: [] },
+  { cat: 'init', name: 'نسخ سطحي (shallow)', code: 'git clone --depth 1 <url>', desc: 'نسخ آخر commit فقط بدون كامل التاريخ. أسرع وأخف للمشاريع الكبيرة.', tags: ['advanced'] },
+
+  // ─── BASIC ───
+  { cat: 'basic', name: 'عرض حالة الملفات', code: 'git status', desc: 'يعرض الملفات المعدّلة، المضافة للـ staging، وغير المتتبعة. أكثر أمر ستستخدمه.', tags: ['important', 'safe'] },
+  { cat: 'basic', name: 'حالة مختصرة', code: 'git status -s', desc: 'نفس git status لكن بصيغة مختصرة. M=معدّل، A=مضاف، ?=غير متتبع.', tags: [] },
+  { cat: 'basic', name: 'إضافة ملف للـ staging', code: 'git add اسم-الملف.txt', desc: 'إضافة ملف معين إلى منطقة الـ staging تحضيراً للـ commit.', tags: ['important'] },
+  { cat: 'basic', name: 'إضافة كل الملفات', code: 'git add .', desc: 'إضافة جميع الملفات المعدّلة والجديدة في المجلد الحالي.', tags: ['important'] },
+  { cat: 'basic', name: 'إضافة بنوع الملف', code: 'git add *.js', desc: 'إضافة جميع ملفات من نوع معين دفعة واحدة.', tags: [] },
+  { cat: 'basic', name: 'إضافة تفاعلية', code: 'git add -p', desc: 'يعرض التغييرات جزءاً جزءاً ويسألك عن كل منها. مفيد للـ commits الدقيقة.', tags: ['advanced'] },
+  { cat: 'basic', name: 'إنشاء commit', code: 'git commit -m "رسالة الـ commit"', desc: 'حفظ جميع التغييرات في الـ staging كـ commit جديد مع رسالة وصفية.', tags: ['important'] },
+  { cat: 'basic', name: 'إضافة وcommit معاً', code: 'git commit -am "رسالة"', desc: 'اختصار: يضيف جميع الملفات المتتبعة المعدّلة ويعمل commit في خطوة واحدة.', tags: [] },
+  { cat: 'basic', name: 'commit مفصّل', code: 'git commit', desc: 'يفتح المحرر لكتابة رسالة commit مطوّلة (عنوان + تفاصيل).', tags: [] },
+  { cat: 'basic', name: 'عرض الفروق', code: 'git diff', desc: 'يعرض التغييرات في الملفات المعدّلة مقارنةً بآخر commit (غير المضافة للـ staging).', tags: ['safe'] },
+  { cat: 'basic', name: 'diff في الـ staging', code: 'git diff --staged', desc: 'يعرض التغييرات المضافة للـ staging مقارنةً بآخر commit.', tags: ['safe'] },
+  { cat: 'basic', name: 'diff بين commitين', code: 'git diff abc123 def456', desc: 'مقارنة التغييرات بين أي commitين باستخدام الـ hash.', tags: [] },
+  { cat: 'basic', name: 'إزالة من الـ staging', code: 'git restore --staged اسم-الملف', desc: 'إزالة ملف من الـ staging دون حذف التغييرات الفعلية.', tags: [] },
+  { cat: 'basic', name: 'تتبع ملف جديد', code: 'git add -N اسم-الملف', desc: 'إضافة ملف للتتبع دون إضافة محتواه بعد.', tags: ['advanced'] },
+
+  // ─── BRANCH ───
+  { cat: 'branch', name: 'عرض الفروع', code: 'git branch', desc: 'عرض جميع الفروع المحلية. الفرع الحالي مميز بـ *.', tags: ['safe'] },
+  { cat: 'branch', name: 'عرض كل الفروع', code: 'git branch -a', desc: 'عرض الفروع المحلية والبعيدة معاً.', tags: ['safe'] },
+  { cat: 'branch', name: 'إنشاء فرع', code: 'git branch اسم-الفرع', desc: 'إنشاء فرع جديد من نقطة الـ commit الحالية دون الانتقال إليه.', tags: [] },
+  { cat: 'branch', name: 'الانتقال لفرع', code: 'git checkout اسم-الفرع', desc: 'الانتقال للعمل على فرع موجود.', tags: ['important'] },
+  { cat: 'branch', name: 'إنشاء والانتقال', code: 'git checkout -b اسم-الفرع', desc: 'إنشاء فرع جديد والانتقال إليه فوراً. الأكثر استخداماً.', tags: ['important'] },
+  { cat: 'branch', name: 'switch (الأحدث)', code: 'git switch اسم-الفرع', desc: 'الانتقال لفرع (الأمر الحديث البديل لـ checkout للتنقل بين الفروع).', tags: [] },
+  { cat: 'branch', name: 'إنشاء والانتقال (switch)', code: 'git switch -c اسم-الفرع', desc: 'إنشاء فرع جديد والانتقال إليه بالصيغة الحديثة.', tags: [] },
+  { cat: 'branch', name: 'دمج فرع', code: 'git merge اسم-الفرع', desc: 'دمج فرع آخر في الفرع الحالي. يستخدم لإدماج الـ features في main.', tags: ['important'] },
+  { cat: 'branch', name: 'merge بدون fast-forward', code: 'git merge --no-ff اسم-الفرع', desc: 'دمج مع إنشاء commit دمج حتى لو كان ممكناً fast-forward. يحافظ على تاريخ الفرع.', tags: [] },
+  { cat: 'branch', name: 'حذف فرع', code: 'git branch -d اسم-الفرع', desc: 'حذف فرع مدموج. آمن لأنه يرفض حذف الفروع غير المدموجة.', tags: [] },
+  { cat: 'branch', name: 'حذف فرع قسري', code: 'git branch -D اسم-الفرع', desc: 'حذف فرع بالقوة حتى لو لم يُدمج بعد. تحذير: قد تفقد commits.', tags: ['danger'] },
+  { cat: 'branch', name: 'إعادة تسمية فرع', code: 'git branch -m الاسم-القديم الاسم-الجديد', desc: 'إعادة تسمية فرع محلي.', tags: [] },
+  { cat: 'branch', name: 'مقارنة فرعين', code: 'git diff فرع1..فرع2', desc: 'عرض الفروق بين فرعين.', tags: ['safe'] },
+  { cat: 'branch', name: 'الفروع المدموجة', code: 'git branch --merged', desc: 'عرض الفروع التي تم دمجها في الفرع الحالي — آمنة للحذف.', tags: ['safe'] },
+  { cat: 'branch', name: 'rebase فرع', code: 'git rebase main', desc: 'نقل الـ commits الحالية لتكون فوق آخر commit في main. تاريخ أنظف من merge.', tags: ['advanced'] },
+  { cat: 'branch', name: 'rebase تفاعلي', code: 'git rebase -i HEAD~3', desc: 'إعادة ترتيب أو دمج أو تعديل آخر 3 commits. أداة قوية جداً.', tags: ['advanced', 'danger'] },
+
+  // ─── REMOTE ───
+  { cat: 'remote', name: 'عرض الـ remotes', code: 'git remote -v', desc: 'عرض الـ remote repositories المتصلة بمشروعك مع روابطها.', tags: ['safe'] },
+  { cat: 'remote', name: 'إضافة remote', code: 'git remote add origin https://github.com/user/repo.git', desc: 'ربط مستودعك المحلي بمستودع بعيد (عادةً على GitHub).', tags: ['important'] },
+  { cat: 'remote', name: 'رفع الكود (push)', code: 'git push origin main', desc: 'رفع الـ commits المحلية إلى الفرع main في الـ remote.', tags: ['important'] },
+  { cat: 'remote', name: 'push مع تتبع', code: 'git push -u origin main', desc: 'رفع وتعيين upstream. بعدها تستطيع كتابة git push فقط.', tags: ['important'] },
+  { cat: 'remote', name: 'سحب التحديثات (pull)', code: 'git pull', desc: 'جلب آخر التغييرات من الـ remote ودمجها في فرعك الحالي (fetch + merge).', tags: ['important'] },
+  { cat: 'remote', name: 'pull مع rebase', code: 'git pull --rebase', desc: 'جلب التغييرات وتطبيقها بـ rebase بدل merge. تاريخ أنظف.', tags: ['advanced'] },
+  { cat: 'remote', name: 'جلب بدون دمج (fetch)', code: 'git fetch origin', desc: 'جلب آخر المعلومات من الـ remote دون دمجها. لمعرفة ما تغيّر.', tags: [] },
+  { cat: 'remote', name: 'push فرع جديد', code: 'git push origin اسم-الفرع', desc: 'رفع فرع محلي جديد للـ remote لأول مرة.', tags: [] },
+  { cat: 'remote', name: 'حذف فرع remote', code: 'git push origin --delete اسم-الفرع', desc: 'حذف فرع من الـ remote. تأكد أنه غير مطلوب.', tags: ['danger'] },
+  { cat: 'remote', name: 'تغيير URL الـ remote', code: 'git remote set-url origin <url-جديد>', desc: 'تغيير رابط الـ remote. مفيد عند نقل المستودع.', tags: [] },
+  { cat: 'remote', name: 'push قسري', code: 'git push --force-with-lease', desc: 'رفع قسري آمن يفشل إن كان الـ remote تغيّر. أأمن من --force.', tags: ['danger'] },
+  { cat: 'remote', name: 'عرض info الـ remote', code: 'git remote show origin', desc: 'تفاصيل كاملة عن الـ remote: الفروع، الـ tracking، إلخ.', tags: ['safe'] },
+
+  // ─── HISTORY ───
+  { cat: 'history', name: 'عرض سجل الـ commits', code: 'git log', desc: 'عرض تاريخ الـ commits كاملاً: hash، مؤلف، تاريخ، رسالة.', tags: ['safe'] },
+  { cat: 'history', name: 'log مختصر', code: 'git log --oneline', desc: 'عرض كل commit في سطر واحد: hash قصير + رسالة. للنظرة السريعة.', tags: ['safe'] },
+  { cat: 'history', name: 'log مع رسم الفروع', code: 'git log --oneline --graph --all', desc: 'عرض تاريخ الفروع والدمج بصريًا في التيرمنال.', tags: ['safe'] },
+  { cat: 'history', name: 'log commit معين', code: 'git show abc123', desc: 'عرض التفاصيل والتغييرات الكاملة لـ commit معين.', tags: ['safe'] },
+  { cat: 'history', name: 'log ملف معين', code: 'git log --follow اسم-الملف', desc: 'عرض تاريخ تعديلات ملف معين حتى لو تغير اسمه.', tags: ['safe'] },
+  { cat: 'history', name: 'البحث في الـ commits', code: 'git log --grep="كلمة"', desc: 'البحث في رسائل الـ commits عن كلمة أو جملة.', tags: ['safe'] },
+  { cat: 'history', name: 'log بتاريخ', code: 'git log --after="2024-01-01"', desc: 'عرض الـ commits بعد تاريخ معين.', tags: [] },
+  { cat: 'history', name: 'log لمؤلف', code: 'git log --author="الاسم"', desc: 'عرض commits شخص معين فقط.', tags: [] },
+  { cat: 'history', name: 'blame — من كتب كل سطر', code: 'git blame اسم-الملف', desc: 'يعرض كل سطر في الملف مع من كتبه ومتى. مفيد لاكتشاف أصل الكود.', tags: [] },
+  { cat: 'history', name: 'reflog', code: 'git reflog', desc: 'سجل كل ما حدث في مستودعك حتى العمليات الملغاة. منقذ الـ commits المفقودة.', tags: ['advanced'] },
+  { cat: 'history', name: 'عدد commits', code: 'git rev-list --count HEAD', desc: 'يعرض العدد الإجمالي لـ commits في الفرع الحالي.', tags: [] },
+
+  // ─── UNDO ───
+  { cat: 'undo', name: 'التراجع عن تعديلات ملف', code: 'git restore اسم-الملف', desc: 'يستعيد الملف لآخر حالة في الـ commit. تحذير: يحذف تغييراتك.', tags: ['danger'] },
+  { cat: 'undo', name: 'إلغاء آخر commit (محافظ)', code: 'git reset --soft HEAD~1', desc: 'يلغي آخر commit ويحتفظ بالتغييرات في الـ staging. آمن.', tags: [] },
+  { cat: 'undo', name: 'إلغاء آخر commit (عادي)', code: 'git reset HEAD~1', desc: 'يلغي آخر commit ويحتفظ بالتغييرات في الـ working directory.', tags: [] },
+  { cat: 'undo', name: 'إلغاء commit (مدمر)', code: 'git reset --hard HEAD~1', desc: 'يلغي آخر commit ويحذف التغييرات نهائياً. خطير جداً!', tags: ['danger'] },
+  { cat: 'undo', name: 'عكس commit (آمن)', code: 'git revert abc123', desc: 'ينشئ commit جديد يعكس تأثير commit معين. آمن لأنه لا يعدّل التاريخ.', tags: ['important'] },
+  { cat: 'undo', name: 'Cherry-pick commit', code: 'git cherry-pick abc123', desc: 'تطبيق تغييرات commit معين من فرع آخر على الفرع الحالي.', tags: ['advanced'] },
+  { cat: 'undo', name: 'استعادة ملف محذوف', code: 'git checkout HEAD -- اسم-الملف', desc: 'استعادة ملف محذوف من آخر commit.', tags: [] },
+  { cat: 'undo', name: 'تعديل آخر commit', code: 'git commit --amend', desc: 'تعديل رسالة آخر commit أو إضافة ملفات إليه. لا تستخدم بعد push!', tags: ['danger'] },
+  { cat: 'undo', name: 'تعديل رسالة commit', code: 'git commit --amend -m "رسالة جديدة"', desc: 'تغيير رسالة آخر commit مباشرة. فقط قبل push!', tags: ['danger'] },
+
+  // ─── STASH ───
+  { cat: 'stash', name: 'حفظ التغييرات مؤقتاً', code: 'git stash', desc: 'حفظ التغييرات الحالية جانباً للانتقال لفرع آخر، ثم العودة لها.', tags: ['important'] },
+  { cat: 'stash', name: 'stash مع رسالة', code: 'git stash save "وصف العمل"', desc: 'حفظ مع وصف لتسهيل التعرف عليه لاحقاً.', tags: [] },
+  { cat: 'stash', name: 'عرض قائمة الـ stashes', code: 'git stash list', desc: 'عرض جميع التغييرات المحفوظة في الـ stash.', tags: ['safe'] },
+  { cat: 'stash', name: 'استعادة آخر stash', code: 'git stash pop', desc: 'تطبيق آخر stash محفوظ وحذفه من القائمة.', tags: [] },
+  { cat: 'stash', name: 'استعادة stash بدون حذف', code: 'git stash apply', desc: 'تطبيق آخر stash مع الاحتفاظ به في القائمة.', tags: [] },
+  { cat: 'stash', name: 'استعادة stash معين', code: 'git stash apply stash@{2}', desc: 'تطبيق stash محدد من القائمة باستخدام رقمه.', tags: [] },
+  { cat: 'stash', name: 'حذف stash معين', code: 'git stash drop stash@{0}', desc: 'حذف stash محدد من القائمة.', tags: [] },
+  { cat: 'stash', name: 'حذف كل الـ stashes', code: 'git stash clear', desc: 'حذف جميع الـ stashes المحفوظة نهائياً.', tags: ['danger'] },
+  { cat: 'stash', name: 'عرض محتوى stash', code: 'git stash show -p stash@{0}', desc: 'عرض التغييرات المحفوظة في stash معين بالتفصيل.', tags: ['safe'] },
+
+  // ─── ADVANCED ───
+  { cat: 'advanced', name: 'tag — وسم إصدار', code: 'git tag v1.0.0', desc: 'إنشاء tag خفيف لتمييز نقطة إصدار معينة.', tags: [] },
+  { cat: 'advanced', name: 'tag مفصّل', code: 'git tag -a v1.0.0 -m "الإصدار الأول"', desc: 'إنشاء annotated tag مع رسالة. مناسب للإصدارات الرسمية.', tags: [] },
+  { cat: 'advanced', name: 'رفع tags', code: 'git push origin --tags', desc: 'رفع جميع الـ tags المحلية للـ remote.', tags: [] },
+  { cat: 'advanced', name: 'عرض الـ tags', code: 'git tag', desc: 'عرض جميع الـ tags في المستودع.', tags: ['safe'] },
+  { cat: 'advanced', name: 'البحث في الكود', code: 'git grep "كلمة البحث"', desc: 'البحث عن نص في جميع ملفات المشروع المتتبعة.', tags: ['safe'] },
+  { cat: 'advanced', name: 'bisect — إيجاد الـ bug', code: 'git bisect start', desc: 'بدء عملية البحث الثنائي للعثور على الـ commit الذي أدخل الـ bug.', tags: ['advanced'] },
+  { cat: 'advanced', name: 'submodule — مستودع داخل مستودع', code: 'git submodule add <url>', desc: 'إضافة مستودع آخر كمكوّن داخل مشروعك (submodule).', tags: ['advanced'] },
+  { cat: 'advanced', name: 'archive — ضغط المشروع', code: 'git archive --format=zip HEAD > project.zip', desc: 'تصدير المشروع كملف مضغوط من نقطة معينة في التاريخ.', tags: [] },
+  { cat: 'advanced', name: 'clean — حذف الملفات غير المتتبعة', code: 'git clean -fd', desc: 'حذف الملفات والمجلدات غير المتتبعة. تحذير: لا يمكن التراجع!', tags: ['danger'] },
+  { cat: 'advanced', name: 'worktree — فرعان في مجلدين', code: 'git worktree add ../folder اسم-الفرع', desc: 'فتح فرع في مجلد منفصل مع الاحتفاظ بالفرع الحالي. للعمل على فرعين معاً.', tags: ['advanced'] },
+  { cat: 'advanced', name: 'shortlog — ملخص Contributors', code: 'git shortlog -sn', desc: 'عرض عدد contributions لكل مطوّر مرتبةً تنازلياً.', tags: ['safe'] },
+  { cat: 'advanced', name: 'gc — تنظيف المستودع', code: 'git gc', desc: 'ضغط وتنظيف ملفات المستودع الداخلية. يحسّن الأداء.', tags: [] },
+  { cat: 'advanced', name: 'fsck — فحص المستودع', code: 'git fsck', desc: 'فحص سلامة قاعدة بيانات Git والبحث عن ملفات معطوبة.', tags: [] },
+];
+
+const catLabels = {
+  all: '🌐 الكل', setup: '⚙️ الإعداد', init: '🗂️ البداية',
+  basic: '📝 الأساسية', branch: '🌿 الفروع', remote: '🌐 Remote',
+  history: '📜 التاريخ', undo: '↩️ التراجع', advanced: '🔬 متقدم', stash: '📦 Stash'
+};
+
+const catColors = {
+  setup: '#f7931e', init: '#58a6ff', basic: '#39d353',
+  branch: '#bc8cff', remote: '#e84393', history: '#e3b341',
+  undo: '#ff7b72', advanced: '#bc8cff', stash: '#58a6ff'
+};
+
+const catDescs = {
+  setup: 'إعداد Git لأول مرة وتخصيصه',
+  init: 'بدء مشروع جديد أو استنساخ موجود',
+  basic: 'الأوامر اليومية: status, add, commit, diff',
+  branch: 'إنشاء الفروع والتنقل بينها والدمج',
+  remote: 'التعامل مع GitHub وGitLab والـ remotes',
+  history: 'استعراض تاريخ المشروع والـ commits',
+  undo: 'التراجع عن الأخطاء واستعادة الكود',
+  stash: 'حفظ التغييرات مؤقتاً والعودة إليها',
+  advanced: 'أوامر متقدمة للمطورين المحترفين'
+};
+
+let activecat = 'all';
+let searchQ = '';
+
+document.getElementById('totalCount').textContent = data.length;
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function highlightText(text, q) {
+  if (!q) return escapeHtml(text);
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return escapeHtml(text).replace(re, '<mark class="highlight">$1</mark>');
+}
+
+function render() {
+  const q = searchQ.trim().toLowerCase();
+  const content = document.getElementById('content');
+  const noResults = document.getElementById('noResults');
+
+  let filtered = data;
+  if (activecat !== 'all') filtered = filtered.filter(c => c.cat === activecat);
+  if (q) filtered = filtered.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.desc.toLowerCase().includes(q) ||
+    c.code.toLowerCase().includes(q)
+  );
+
+  if (filtered.length === 0) {
+    content.innerHTML = '';
+    noResults.style.display = 'block';
+    document.getElementById('searchTerm').textContent = q;
+    return;
+  }
+  noResults.style.display = 'none';
+
+  // Group by category
+  const cats = activecat !== 'all'
+    ? [activecat]
+    : [...new Set(filtered.map(c => c.cat))];
+
+  content.innerHTML = cats.map(cat => {
+    const items = filtered.filter(c => c.cat === cat);
+    if (!items.length) return '';
+    const color = catColors[cat] || '#f7931e';
+
+    return `<div class="section" data-cat="${cat}">
+      <div class="section-header">
+        <div class="section-icon">${catLabels[cat]?.split(' ')[0] || '📁'}</div>
+        <div>
+          <div class="section-title">${catLabels[cat]?.split(' ').slice(1).join(' ') || cat}</div>
+          <div class="section-desc">${catDescs[cat] || ''}</div>
+        </div>
+      </div>
+      <div class="cmd-grid">
+        ${items.map(cmd => `
+          <div class="cmd-card" style="--card-accent:${color}" onclick="copyCmd(this, '${cmd.code.replace(/'/g,"\\'")}')">
+            <div class="cmd-top">
+              <div class="cmd-code">${highlightText(cmd.code, q)}</div>
+              <button class="copy-btn" onclick="event.stopPropagation();copyCmd(this.closest('.cmd-card'),this,'${cmd.code.replace(/'/g,"\\'")}')">نسخ</button>
+            </div>
+            <div class="cmd-name">${highlightText(cmd.name, q)}</div>
+            <div class="cmd-desc">${highlightText(cmd.desc, q)}</div>
+            ${cmd.tags.length ? `<div class="cmd-tags">
+              ${cmd.tags.map(t => `<span class="tag tag-${t}">${
+                t==='important'?'⭐ مهم':t==='danger'?'⚠️ خطير':t==='safe'?'✅ آمن':'🔬 متقدم'
+              }</span>`).join('')}
+            </div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copyCmd(card, btnOrCode, code) {
+  const actualCode = typeof btnOrCode === 'string' ? btnOrCode : code;
+  navigator.clipboard.writeText(actualCode).then(() => {
+    const btn = card.querySelector('.copy-btn');
+    if (btn) {
+      btn.textContent = '✓ تم';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'نسخ'; btn.classList.remove('copied'); }, 1500);
+    }
+  });
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQ = e.target.value;
+  render();
+});
+
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activecat = btn.dataset.cat;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
